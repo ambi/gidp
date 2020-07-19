@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/empty.proto";
+
+service API {
+  rpc ListTenants(google.protobuf.Empty) returns (ListTenantsResponse);
+  rpc GetTenant(GetTenantRequest) returns (Tenant);
+  rpc CreateTenant(google.protobuf.Empty) returns (Tenant);
+  rpc DeleteTenant(DeleteTenantRequest) returns (google.protobuf.Empty);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+}
+
+message Tenant {
+  string id = 1;
+  string status = 2;
+}
+
+message User {
+  string id = 1;
+  string tenant_id = 2;
+  string display_name = 3;
+}
+
+message ListTenantsResponse { repeated Tenant tenants = 1; }
+
+message GetTenantRequest { string tenant_id = 1; }
+
+message DeleteTenantRequest { string tenant_id = 1; }
+
+message ListUsersRequest { string tenant_id = 1; }
+
+message ListUsersResponse { repeated User users = 1; }
+
+message GetUserRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+}
+
+message CreateUserRequest {
+  string tenant_id = 1;
+  User user = 2;
+}
+
+message UpdateUserRequest {
+  string tenant_id = 1;
+  User user = 2;
+}
+
+message DeleteUserRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+}
