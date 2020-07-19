@@ -2,6 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/ambi/go-web-app-patterns/adapter/controller"
 	"github.com/ambi/go-web-app-patterns/adapter/sqlgateway"
@@ -9,6 +12,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+)
+
+const (
+	defaultDBHost     = "localhost"
+	defaultDBPassword = ""
+	defaultDBUser     = "root"
+	databaseName      = "go_web_app_patterns"
+	defaultPort       = "8080"
 )
 
 var (
@@ -28,8 +39,44 @@ func setupRouter(e *echo.Echo) {
 	e.DELETE("/:tenant_id/users/:id", func(c echo.Context) error { return controller.DeleteUser(c, tenantRepo, userRepo) })
 }
 
-func setupDB() error {
-	db, err := sql.Open("mysql", "root:@/go_web_app_patterns")
+func getDBUser() string {
+	user := os.Getenv("DB_USER")
+	if len(user) == 0 {
+		return defaultDBUser
+	}
+	return user
+}
+
+func getDBHost() string {
+	host := os.Getenv("DB_HOST")
+	if len(host) == 0 {
+		return defaultDBHost
+	}
+	return host
+}
+func getDBPassword() string {
+	password := os.Getenv("DB_PASSWORD")
+	if len(password) == 0 {
+		return defaultDBPassword
+	}
+	return password
+}
+
+func getPort() string {
+	port := os.Getenv("PORT")
+	i, err := strconv.Atoi(port)
+	if err != nil {
+		return defaultPort
+	}
+	if i < 0 || 65535 < i {
+		return defaultPort
+	}
+	return port
+}
+
+func newDB() error {
+	datasource := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", getDBUser(), getDBPassword(), getDBHost(), databaseName) // TODO: escape
+	db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		return err
 	}
@@ -64,12 +111,12 @@ func main() {
 
 	setupRouter(e)
 
-	err := setupDB()
+	err := newDB()
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
 
-	err = e.Start(":8080")
+	err = e.Start(":" + getPort())
 	if err != nil {
 		e.Logger.Fatal(err)
 	}

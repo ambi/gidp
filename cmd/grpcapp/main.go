@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
 
 	"github.com/ambi/go-web-app-patterns/adapter/sqlgateway"
 	"github.com/ambi/go-web-app-patterns/api"
@@ -15,6 +18,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+)
+
+const (
+	defaultDBHost     = "localhost"
+	defaultDBPassword = ""
+	defaultDBUser     = "root"
+	databaseName      = "go_web_app_patterns"
+	defaultPort       = "50051"
 )
 
 var (
@@ -174,8 +185,44 @@ func (srv *server) DeleteUser(ctx context.Context, req *api.DeleteUserRequest) (
 	return &empty.Empty{}, nil
 }
 
+func getDBUser() string {
+	user := os.Getenv("DB_USER")
+	if len(user) == 0 {
+		return defaultDBUser
+	}
+	return user
+}
+
+func getDBHost() string {
+	host := os.Getenv("DB_HOST")
+	if len(host) == 0 {
+		return defaultDBHost
+	}
+	return host
+}
+func getDBPassword() string {
+	password := os.Getenv("DB_PASSWORD")
+	if len(password) == 0 {
+		return defaultDBPassword
+	}
+	return password
+}
+
+func getPort() string {
+	port := os.Getenv("PORT")
+	i, err := strconv.Atoi(port)
+	if err != nil {
+		return defaultPort
+	}
+	if i < 0 || 65535 < i {
+		return defaultPort
+	}
+	return port
+}
+
 func newDB() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:@/go_web_app_patterns")
+	datasource := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", getDBUser(), getDBPassword(), getDBHost(), databaseName) // TODO: escape
+	db, err := sql.Open("mysql", datasource)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +242,7 @@ func main() {
 
 	srv := newServer(db)
 
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", ":"+getPort())
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

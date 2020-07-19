@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: prebuild-app
+    command: go run cmd/echoapp/main.go
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: password
+      DB_USER: root
+      PORT: 8080
+    ports:
+      - 8080:8080
+    volumes:
+      - ./:/go/src
+  db:
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: go_web_app_patterns
+    image: mysql
+    volumes:
+      - ./migration:/docker-entrypoint-initdb.d
+      - ./tmp/db:/var/lib/mysql
