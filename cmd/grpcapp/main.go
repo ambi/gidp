@@ -43,5 +43,9 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	api.RegisterAPIServer(grpcServer, srv)
-	grpcServer.Serve(lis)
+
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

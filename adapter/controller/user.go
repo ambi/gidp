@@ -15,15 +15,13 @@ func ListUsers(c echo.Context, tenantRepo model.TenantRepo, userRepo model.UserR
 
 	users, err := service.ListUsers(tenantRepo, userRepo, tenantID)
 	if err == model.ErrEntityNotFound {
-		c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant not found"})
-		return nil
+		return c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant not found"})
 	}
 	if err != nil {
 		return err
 	}
 
-	c.JSON(http.StatusOK, users)
-	return nil
+	return c.JSON(http.StatusOK, users)
 }
 
 // GetUser gets a user in response to HTTP request.
@@ -34,15 +32,13 @@ func GetUser(c echo.Context, tenantRepo model.TenantRepo, userRepo model.UserRep
 
 	user, err := service.GetUser(tenantRepo, userRepo, tenantID, id)
 	if err == model.ErrEntityNotFound {
-		c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant or user not found"})
-		return nil
+		return c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant or user not found"})
 	}
 	if err != nil {
 		return err
 	}
 
-	c.JSON(http.StatusOK, user)
-	return nil
+	return c.JSON(http.StatusOK, user)
 }
 
 // CreateUser creates a user in response to HTTP request.
@@ -60,8 +56,7 @@ func CreateUser(c echo.Context, tenantRepo model.TenantRepo, userRepo model.User
 		return err
 	}
 
-	c.JSON(http.StatusCreated, user)
-	return nil
+	return c.JSON(http.StatusCreated, user)
 }
 
 // UpdateUser updates a user in response to HTTP request.
@@ -74,15 +69,13 @@ func UpdateUser(c echo.Context, tenantRepo model.TenantRepo, userRepo model.User
 	user := &model.User{ID: id, DisplayName: displayName}
 	err := service.UpdateUser(tenantRepo, userRepo, tenantID, user)
 	if err == model.ErrEntityNotFound {
-		c.JSON(http.StatusNotFound, &ErrorResponse{Error: "User not found"})
-		return nil
+		return c.JSON(http.StatusNotFound, &ErrorResponse{Error: "User not found"})
 	}
 	if err != nil {
 		return err
 	}
 
-	c.JSON(http.StatusOK, user)
-	return nil
+	return c.JSON(http.StatusOK, user)
 }
 
 // DeleteUser deletes a user in response to HTTP request.
@@ -93,13 +86,11 @@ func DeleteUser(c echo.Context, tenantRepo model.TenantRepo, userRepo model.User
 
 	err := service.DeleteUser(tenantRepo, userRepo, tenantID, id)
 	if err == model.ErrEntityNotFound {
-		c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant or user not found"})
-		return nil
+		return c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant or user not found"})
 	}
 	if err != nil {
 		return err
 	}
 
-	c.NoContent(http.StatusNoContent)
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }

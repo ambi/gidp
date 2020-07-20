@@ -15,8 +15,7 @@ func ListTenants(c echo.Context, tenantRepo model.TenantRepo) error {
 		return err
 	}
 
-	c.JSON(http.StatusOK, tenants)
-	return nil
+	return c.JSON(http.StatusOK, tenants)
 }
 
 // GetTenant gets a tenant in response to HTTP request.
@@ -25,15 +24,13 @@ func GetTenant(c echo.Context, tenantRepo model.TenantRepo) error {
 	id := c.Param("id")
 	tenant, err := service.GetTenant(tenantRepo, id)
 	if err == model.ErrEntityNotFound {
-		c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant not found"})
-		return nil
+		return c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant not found"})
 	}
 	if err != nil {
 		return err
 	}
 
-	c.JSON(http.StatusOK, tenant)
-	return nil
+	return c.JSON(http.StatusOK, tenant)
 }
 
 // CreateTenant creates a tenant in response to HTTP request.
@@ -43,8 +40,7 @@ func CreateTenant(c echo.Context, tenantRepo model.TenantRepo) error {
 		return err
 	}
 
-	c.JSON(http.StatusCreated, tenant)
-	return nil
+	return c.JSON(http.StatusCreated, tenant)
 }
 
 // DeleteTenant deletes a tenant in response to HTTP request.
@@ -54,13 +50,11 @@ func DeleteTenant(c echo.Context, tenantRepo model.TenantRepo) error {
 
 	err := service.DeleteTenant(tenantRepo, id)
 	if err == model.ErrEntityNotFound {
-		c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant not found"})
-		return nil
+		return c.JSON(http.StatusNotFound, &ErrorResponse{Error: "Tenant not found"})
 	}
 	if err != nil {
 		return err
 	}
 
-	c.NoContent(http.StatusNoContent)
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }

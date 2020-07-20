@@ -17,8 +17,8 @@ func setup() {
 	tenantRepo = memgateway.NewTenantRepo()
 	tenant1 = &model.Tenant{Status: "active"}
 	tenant2 = &model.Tenant{Status: "active"}
-	tenantRepo.Create(tenant1)
-	tenantRepo.Create(tenant2)
+	_ = tenantRepo.Create(tenant1)
+	_ = tenantRepo.Create(tenant2)
 }
 
 func TestListTenants(t *testing.T) {
