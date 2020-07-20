@@ -1,33 +1,22 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/ambi/go-web-app-patterns/adapter/controller"
 	"github.com/ambi/go-web-app-patterns/adapter/sqlgateway"
+	"github.com/ambi/go-web-app-patterns/infra"
 	"github.com/ambi/go-web-app-patterns/model"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
-	defaultDBHost     = "localhost"
-	defaultDBPassword = ""
-	defaultDBUser     = "root"
-	databaseName      = "go_web_app_patterns"
-	defaultPort       = "8080"
+	defaultPort = "8080"
 )
 
-var (
-	tenantRepo model.TenantRepo
-	userRepo   model.UserRepo
-)
-
-func setupRouter(e *echo.Echo) {
+func route(e *echo.Echo, tenantRepo model.TenantRepo, userRepo model.UserRepo) {
 	e.GET("/tenants", func(c echo.Context) error { return controller.ListTenants(c, tenantRepo) })
 	e.GET("/tenants/:id", func(c echo.Context) error { return controller.GetTenant(c, tenantRepo) })
 	e.POST("/tenants", func(c echo.Context) error { return controller.CreateTenant(c, tenantRepo) })
@@ -37,29 +26,6 @@ func setupRouter(e *echo.Echo) {
 	e.POST("/:tenant_id/users", func(c echo.Context) error { return controller.CreateUser(c, tenantRepo, userRepo) })
 	e.PATCH("/:tenant_id/users/:id", func(c echo.Context) error { return controller.UpdateUser(c, tenantRepo, userRepo) })
 	e.DELETE("/:tenant_id/users/:id", func(c echo.Context) error { return controller.DeleteUser(c, tenantRepo, userRepo) })
-}
-
-func getDBUser() string {
-	user := os.Getenv("DB_USER")
-	if len(user) == 0 {
-		return defaultDBUser
-	}
-	return user
-}
-
-func getDBHost() string {
-	host := os.Getenv("DB_HOST")
-	if len(host) == 0 {
-		return defaultDBHost
-	}
-	return host
-}
-func getDBPassword() string {
-	password := os.Getenv("DB_PASSWORD")
-	if len(password) == 0 {
-		return defaultDBPassword
-	}
-	return password
 }
 
 func getPort() string {
@@ -74,47 +40,18 @@ func getPort() string {
 	return port
 }
 
-func newDB() error {
-	datasource := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", getDBUser(), getDBPassword(), getDBHost(), databaseName) // TODO: escape
-	db, err := sql.Open("mysql", datasource)
-	if err != nil {
-		return err
-	}
-
-	if err = db.Ping(); err != nil {
-		return err
-	}
-
-	tenantRepo = sqlgateway.NewTenantRepo(db)
-	userRepo = sqlgateway.NewUserRepo(db)
-
-	// adapter, err := mysql.Open("root:@/go_web_app_patterns")
-	// if err != nil {
-	// 	return err
-	// }
-	// ctx := context.Background()
-	// if err = adapter.Ping(ctx); err != nil {
-	// 	return err
-	// }
-
-	// repo := rel.New(adapter)
-
-	// tenantRepo = relgateway.NewTenantRepo(repo)
-	// userRepo = relgateway.NewUserRepo(repo)
-
-	return nil
-}
-
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
-	setupRouter(e)
-
-	err := newDB()
+	db, err := infra.NewMySQLDB()
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
+	tenantRepo := sqlgateway.NewTenantRepo(db)
+	userRepo := sqlgateway.NewUserRepo(db)
+
+	route(e, tenantRepo, userRepo)
 
 	err = e.Start(":" + getPort())
 	if err != nil {
