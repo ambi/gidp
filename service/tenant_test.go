@@ -5,91 +5,77 @@ import (
 
 	"github.com/ambi/go-web-app-patterns/adapter/memgateway"
 	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/stretchr/testify/suite"
 )
 
-var (
+type TenantTestSuite struct {
+	suite.Suite
+	tenants
+}
+
+type tenants struct {
 	tenantRepo model.TenantRepo
 	tenant1    *model.Tenant
 	tenant2    *model.Tenant
-)
-
-func setup() {
-	tenantRepo = memgateway.NewTenantRepo()
-	tenant1 = &model.Tenant{Status: "active"}
-	tenant2 = &model.Tenant{Status: "active"}
-	_ = tenantRepo.Create(tenant1)
-	_ = tenantRepo.Create(tenant2)
 }
 
-func TestListTenants(t *testing.T) {
-	setup()
+func (t *tenants) setup() {
+	t.tenantRepo = memgateway.NewTenantRepo()
+	t.tenant1 = &model.Tenant{Status: "active"}
+	t.tenant2 = &model.Tenant{Status: "active"}
+	_ = t.tenantRepo.Create(t.tenant1)
+	_ = t.tenantRepo.Create(t.tenant2)
+}
 
-	tenants, err := ListTenants(tenantRepo)
+func (t *TenantTestSuite) SetupTest() {
+	t.tenants.setup()
+}
 
-	if err != nil {
-		t.Errorf("ListTenants() should not return error, but got %v", err)
-	}
-	if len(tenants) != 2 {
-		t.Errorf("ListTenants() should return 2 tenants, but got %d tenants", len(tenants))
-	}
+func (t *TenantTestSuite) TestListTenants() {
+	tenants, err := ListTenants(t.tenantRepo)
+
+	t.Nil(err)
+	t.Len(tenants, 2)
 	for _, tenant := range tenants {
-		if tenant.ID != tenant1.ID && tenant.ID != tenant2.ID {
-			t.Errorf("ListTenants() should return saved tenants, but got %v", tenant)
-		}
+		t.Contains([]string{t.tenant1.ID, t.tenant2.ID}, tenant.ID)
 	}
 }
 
-func TestGetTenant(t *testing.T) {
-	setup()
+func (t *TenantTestSuite) TestGetTenant() {
+	tenant, err := GetTenant(t.tenantRepo, t.tenant1.ID)
 
-	tenant, err := GetTenant(tenantRepo, tenant1.ID)
-	if err != nil {
-		t.Errorf("GetTenant() should not return error, but got %v", err)
-	}
-	if tenant.ID != tenant1.ID {
-		t.Errorf("GetTenant() should return id=%s tenant, but got id=%s tenant", tenant1.ID, tenant.ID)
-	}
+	t.Nil(err)
+	t.Equal(tenant.ID, t.tenant1.ID)
 
-	tenant, err = GetTenant(tenantRepo, "invalid")
-	if err != model.ErrEntityNotFound {
-		t.Errorf("GetTenant() should return error (ErrEntityNotFound), but got %v", err)
-	}
-	if tenant != nil {
-		t.Errorf("GetTenant() should not return tenant, but got %v", tenant)
-	}
+	tenant, err = GetTenant(t.tenantRepo, "invalid")
+	t.Equal(model.ErrEntityNotFound, err)
+	t.Nil(tenant)
 }
 
-func TestCreateTenant(t *testing.T) {
-	setup()
+func (t *TenantTestSuite) TestCreateTenant() {
+	tenant, err := CreateTenant(t.tenantRepo)
 
-	tenant, err := CreateTenant(tenantRepo)
-	if err != nil {
-		t.Errorf("CreateTenant() should not return error, but got %v", err)
-	}
-	if tenant == nil {
-		t.Errorf("CreateTenant() should return tenant, but got nil")
-	}
+	t.Nil(err)
+	t.NotNil(tenant)
 
-	tenants, _ := tenantRepo.List()
-	if len(tenants) != 3 {
-		t.Errorf("CreateTenant() should create a new tenant, but the size of tenant is %d", len(tenants))
-	}
+	tenants, _ := t.tenantRepo.List()
+
+	t.Len(tenants, 3)
 }
 
-func TestDeleteTenant(t *testing.T) {
-	setup()
+func (t *TenantTestSuite) TestDeleteTenant() {
+	err := DeleteTenant(t.tenantRepo, t.tenant1.ID)
 
-	err := DeleteTenant(tenantRepo, tenant1.ID)
-	if err != nil {
-		t.Errorf("DeleteTenant() should not return error, but got %v", err)
-	}
-	tenants, _ := tenantRepo.List()
-	if len(tenants) != 1 {
-		t.Errorf("DeleteTenant() should delete a tenant, but the size of tenant is %d", len(tenants))
-	}
+	t.Nil(err)
 
-	err = DeleteTenant(tenantRepo, "invalid")
-	if err != model.ErrEntityNotFound {
-		t.Errorf("DeleteTenant() should return error (ErrEntityNotFound), but got %v", err)
-	}
+	tenants, _ := t.tenantRepo.List()
+	t.Len(tenants, 1)
+
+	err = DeleteTenant(t.tenantRepo, "invalid")
+
+	t.Equal(model.ErrEntityNotFound, err)
+}
+
+func TestTenant(t *testing.T) {
+	suite.Run(t, new(TenantTestSuite))
 }

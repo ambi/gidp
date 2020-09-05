@@ -29,8 +29,8 @@ func (gw *tenantGateway) List() ([]*model.Tenant, error) {
 
 	// []model.Tenant -> []*model.Tenant
 	result := make([]*model.Tenant, len(tenants))
-	for i, tenant := range tenants {
-		result[i] = &tenant
+	for i := 0; i < len(tenants); i++ {
+		result[i] = &tenants[i]
 	}
 	return result, nil
 }
@@ -52,7 +52,7 @@ func (gw *tenantGateway) Create(tenant *model.Tenant) error {
 
 	ctx := context.Background()
 
-	err := gw.repo.Insert(ctx, &tenant)
+	err := gw.repo.Insert(ctx, tenant)
 	if err != nil {
 		return err
 	}
