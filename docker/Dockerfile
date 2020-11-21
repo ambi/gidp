@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.14
+ARG GO_VERSION=1.15
 
 # 1 prebuild-app
 FROM golang:${GO_VERSION} AS prebuild-app
@@ -13,7 +13,7 @@ FROM prebuild-echoapp AS build-echoapp
 
 COPY . .
 
-RUN go build -o /go/bin/echoapp cmd/echoapp/main.go
+RUN go build -o /go/bin/echoapp infra/cmd/echoapp/main.go
 
 # 2a.2 exec-echoapp (binary)
 FROM debian:10-slim AS exec-echoapp
@@ -29,7 +29,7 @@ FROM prebuild-grpcapp AS build-grpcapp
 
 COPY . .
 
-RUN go build -o /go/bin/grpcapp cmd/grpcapp/main.go
+RUN go build -o /go/bin/grpcapp infra/cmd/grpcapp/main.go
 
 # 2b.2 exec-grpcapp (binary)
 FROM debian:10-slim AS exec-grpcapp

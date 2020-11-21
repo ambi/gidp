@@ -4,7 +4,14 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/ambi/gidp/model"
+)
+
+const (
+	sqlTenantList   = "SELECT id, status FROM tenants"
+	sqlTenantGet    = "SELECT id, status FROM tenants WHERE id=?"
+	sqlTenantCreate = "INSERT INTO tenants (id) VALUES (?)"
+	sqlTenantDelete = "DELETE FROM tenants WHERE id=?"
 )
 
 type tenantGateway struct {
@@ -17,11 +24,12 @@ func NewTenantRepo(db *sql.DB) model.TenantRepo {
 }
 
 func (gw *tenantGateway) List() ([]*model.Tenant, error) {
-	const query = "SELECT id FROM tenants"
-
 	ctx := context.Background()
-	rows, err := gw.db.QueryContext(ctx, query)
+	rows, err := gw.db.QueryContext(ctx, sqlTenantList)
 	if err != nil {
+		return nil, err
+	}
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -29,7 +37,7 @@ func (gw *tenantGateway) List() ([]*model.Tenant, error) {
 	tenants := make([]*model.Tenant, 0)
 	for rows.Next() {
 		tenant := &model.Tenant{}
-		if err := rows.Scan(&tenant.ID); err != nil {
+		if err := rows.Scan(&tenant.ID, &tenant.Status); err != nil {
 			return nil, err
 		}
 		tenants = append(tenants, tenant)
@@ -39,13 +47,11 @@ func (gw *tenantGateway) List() ([]*model.Tenant, error) {
 }
 
 func (gw *tenantGateway) Get(id string) (*model.Tenant, error) {
-	const query = "SELECT id FROM tenants WHERE id=?"
-
 	ctx := context.Background()
-	row := gw.db.QueryRowContext(ctx, query, id)
+	row := gw.db.QueryRowContext(ctx, sqlTenantGet, id)
 
 	tenant := &model.Tenant{}
-	err := row.Scan(&tenant.ID)
+	err := row.Scan(&tenant.ID, &tenant.Status)
 
 	if err == sql.ErrNoRows {
 		return nil, model.ErrEntityNotFound
@@ -57,11 +63,10 @@ func (gw *tenantGateway) Get(id string) (*model.Tenant, error) {
 }
 
 func (gw *tenantGateway) Create(tenant *model.Tenant) error {
-	const query = "INSERT INTO tenants (id) VALUES (?)"
-
 	ctx := context.Background()
 	id := model.NewUUID()
-	_, err := gw.db.ExecContext(ctx, query, id)
+	status := "active"
+	_, err := gw.db.ExecContext(ctx, sqlTenantCreate, id, status)
 	if err != nil {
 		return err
 	}
@@ -72,10 +77,8 @@ func (gw *tenantGateway) Create(tenant *model.Tenant) error {
 }
 
 func (gw *tenantGateway) Delete(tenant *model.Tenant) error {
-	const query = "DELETE FROM tenants WHERE id=?"
-
 	ctx := context.Background()
-	result, err := gw.db.ExecContext(ctx, query, tenant.ID)
+	result, err := gw.db.ExecContext(ctx, sqlTenantDelete, tenant.ID)
 	if err != nil {
 		return err
 	}

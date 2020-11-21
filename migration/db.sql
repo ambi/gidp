@@ -1,8 +1,8 @@
-CREATE DATABASE IF NOT EXISTS go_web_app_patterns
+CREATE DATABASE IF NOT EXISTS gidp
     CHARACTER SET utf8
     COLLATE utf8_general_ci;
 
-USE go_web_app_patterns;
+USE gidp;
 
 -- DROP TABLE users;
 -- DROP TABLE tenants;
@@ -20,17 +20,17 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
 
-SET @tenant_uuid1 = UUID(),
-    @tenant_uuid2 = UUID(),
-    @user_uuid1 = UUID(),
-    @user_uuid2 = UUID(),
-    @user_uuid3 = UUID();
+-- SET @tenant_uuid1 = UUID(),
+--     @tenant_uuid2 = UUID(),
+--     @user_uuid1 = UUID(),
+--     @user_uuid2 = UUID(),
+--     @user_uuid3 = UUID();
 
-INSERT INTO tenants (id)
-    VALUES (@tenant_uuid1),
-           (@tenant_uuid2);
+-- INSERT INTO tenants (id)
+--     VALUES (@tenant_uuid1),
+--            (@tenant_uuid2);
 
-INSERT INTO users (id, tenant_id, display_name)
-    VALUES (@user_uuid1, @tenant_uuid1, "test1@example.com"),
-           (@user_uuid2, @tenant_uuid1, "test2@example.com"),
-           (@user_uuid3, @tenant_uuid2, "test3@example.jp");
+-- INSERT INTO users (id, tenant_id, display_name)
+--     VALUES (@user_uuid1, @tenant_uuid1, "test1@example.com"),
+--            (@user_uuid2, @tenant_uuid1, "test2@example.com"),
+--            (@user_uuid3, @tenant_uuid2, "test3@example.jp");

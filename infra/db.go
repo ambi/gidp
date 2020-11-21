@@ -10,10 +10,18 @@ import (
 
 const (
 	defaultDBHost     = "localhost"
+	defaultDBName     = "gidp"
 	defaultDBPassword = ""
 	defaultDBUser     = "root"
-	databaseName      = "go_web_app_patterns"
 )
+
+func getDBName() string {
+	name := os.Getenv("DB_NAME")
+	if len(name) == 0 {
+		return defaultDBName
+	}
+	return name
+}
 
 func getDBUser() string {
 	user := os.Getenv("DB_USER")
@@ -39,16 +47,25 @@ func getDBPassword() string {
 	return password
 }
 
+func getLocalLocation() *time.Location {
+	loc, err := time.LoadLocation("Local")
+	if err != nil {
+		panic(err)
+	}
+
+	return loc
+}
+
 // NewMySQLDB creates a new DB interface for MySQL.
 func NewMySQLDB() (*sql.DB, error) {
 	config := mysql.NewConfig()
-	config.User = getDBUser()
-	config.Passwd = getDBPassword()
-	config.Net = "tcp"
 	config.Addr = getDBHost()
-	config.DBName = databaseName
-	config.Loc = time.FixedZone("Asia/Tokyo", 9*60*60)
+	config.DBName = getDBName()
+	config.Loc = getLocalLocation()
+	config.Net = "tcp"
 	config.ParseTime = true
+	config.Passwd = getDBPassword()
+	config.User = getDBUser()
 
 	db, err := sql.Open("mysql", config.FormatDSN())
 	if err != nil {

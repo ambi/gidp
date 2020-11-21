@@ -22,7 +22,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: go_web_app_patterns
+      MYSQL_DATABASE: gidp
     image: mysql
     volumes:
       - ./migration:/docker-entrypoint-initdb.d

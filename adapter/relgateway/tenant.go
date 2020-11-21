@@ -3,9 +3,9 @@ package relgateway
 import (
 	"context"
 
-	"github.com/Fs02/rel"
+	"github.com/go-rel/rel"
 
-	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/ambi/gidp/model"
 )
 
 type tenantGateway struct {

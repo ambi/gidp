@@ -1,7 +1,7 @@
 package memgateway
 
 import (
-	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/ambi/gidp/model"
 )
 
 type userGateway struct {

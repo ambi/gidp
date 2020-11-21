@@ -3,84 +3,95 @@ package relgateway
 import (
 	"testing"
 
-	"github.com/Fs02/rel"
-	"github.com/Fs02/rel/reltest"
-	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/ambi/gidp/model"
+	"github.com/go-rel/rel"
+	"github.com/go-rel/rel/reltest"
 	"github.com/stretchr/testify/assert"
 )
 
-type tenantTest struct {
-	repo    *reltest.Repository
-	gw      model.TenantRepo
-	tenants []model.Tenant
+func fixTenants() []*model.Tenant {
+	return []*model.Tenant{
+		{ID: "edd2f7e8-21a0-4c56-a94d-35f3b6773f12", Status: "active"},
+		{ID: "a463c6a2-86f9-44d6-9c36-024ec766b0e1", Status: "active"},
+	}
 }
 
-func newTenantTest(_ *testing.T) *tenantTest {
+func setupTenantGateway() (*reltest.Repository, model.TenantRepo, []*model.Tenant) {
 	repo := reltest.New()
 	gw := NewTenantRepo(repo)
-	tenants := []model.Tenant{
-		{ID: "ID1", Status: "active"},
-		{ID: "ID2", Status: "active"},
-	}
-
-	return &tenantTest{
-		repo:    repo,
-		gw:      gw,
-		tenants: tenants,
-	}
+	tenants := fixTenants()
+	return repo, gw, tenants
 }
 
-func TestNewTenantRepo(t *testing.T) {
-	s := newTenantTest(t)
+func TestTenantGateway(t *testing.T) {
+	t.Run("NewTenantRepo", func(t *testing.T) {
+		_, gw, _ := setupTenantGateway()
 
-	assert.NotNil(t, s.gw)
-}
+		assert.NotNil(t, gw)
+	})
 
-func TestTenantGateway_List(t *testing.T) {
-	s := newTenantTest(t)
-	expected := make([]*model.Tenant, len(s.tenants))
-	for i := 0; i < len(s.tenants); i++ {
-		expected[i] = &s.tenants[i]
-	}
+	t.Run("List", func(t *testing.T) {
+		repo, gw, tenants := setupTenantGateway()
+		relTenants := []model.Tenant{*tenants[0], *tenants[1]}
+		repo.ExpectFindAll().Result(relTenants)
 
-	s.repo.ExpectFindAll().Result(s.tenants)
+		result, err := gw.List()
 
-	result, err := s.gw.List()
+		assert.Nil(t, err)
+		expected := make([]*model.Tenant, 2)
+		for i := 0; i < len(tenants); i++ {
+			expected[i] = tenants[i]
+		}
+		assert.Equal(t, expected, result)
+		repo.AssertExpectations(t)
+	})
 
-	assert.Nil(t, err)
-	assert.Equal(t, expected, result)
-	s.repo.AssertExpectations(t)
-}
+	t.Run("Get", func(t *testing.T) {
+		repo, gw, tenants := setupTenantGateway()
 
-func TestTenantGateway_Get(t *testing.T) {
-	s := newTenantTest(t)
+		t.Run("tenant ID is valid", func(t *testing.T) {
+			repo.ExpectFind(rel.Eq("id", tenants[0].ID)).Result(*tenants[0])
 
-	s.repo.ExpectFind(rel.Eq("id", s.tenants[0].ID)).Result(s.tenants[0])
-	s.repo.ExpectFind(rel.Eq("id", s.tenants[1].ID)).NotFound()
+			result, err := gw.Get(tenants[0].ID)
 
-	result, err := s.gw.Get(s.tenants[0].ID)
+			assert.Nil(t, err)
+			assert.Equal(t, tenants[0], result)
+			repo.AssertExpectations(t)
+		})
 
-	assert.Nil(t, err)
-	assert.Equal(t, &s.tenants[0], result)
+		t.Run("tenant ID is invalid", func(t *testing.T) {
+			repo.ExpectFind(rel.Eq("id", tenants[0].ID)).NotFound()
 
-	result, err = s.gw.Get(s.tenants[1].ID)
+			result, err := gw.Get(tenants[0].ID)
 
-	assert.NotNil(t, err)
-	assert.Nil(t, result)
+			assert.NotNil(t, err)
+			assert.Nil(t, result)
+			repo.AssertExpectations(t)
+		})
+	})
 
-	s.repo.AssertExpectations(t)
-}
+	t.Run("Create", func(t *testing.T) {
+		repo, gw, _ := setupTenantGateway()
+		repo.ExpectInsert()
 
-func TestTenantGateway_Create(t *testing.T) {
-	s := newTenantTest(t)
-	tenant := s.tenants[0]
+		tenant := model.Tenant{
+			Status: "inactive",
+		}
+		err := gw.Create(&tenant)
 
-	s.repo.ExpectInsert()
+		assert.Nil(t, err)
+		assert.Equal(t, "inactive", tenant.Status)
+		assert.Regexp(t, "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", tenant.ID)
+		repo.AssertExpectations(t)
+	})
 
-	err := s.gw.Create(&tenant)
+	t.Run("Delete", func(t *testing.T) {
+		repo, gw, tenants := setupTenantGateway()
+		repo.ExpectDelete()
 
-	assert.Nil(t, err)
-	assert.Equal(t, s.tenants[0].Status, tenant.Status)
-	assert.Regexp(t, "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", tenant.ID)
-	s.repo.AssertExpectations(t)
+		err := gw.Delete(tenants[0])
+
+		assert.Nil(t, err)
+		repo.AssertExpectations(t)
+	})
 }

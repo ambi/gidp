@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/ambi/gidp/model"
 )
 
 // ListUsers lists users.

@@ -1,4 +1,4 @@
-# go-web-app-patterns
+# gIdP
 
 ## Web Frameworks
 
@@ -7,6 +7,8 @@
 ## DB Migration
 
 ## DB Interface
+
+DB unit testing is very difficult. In Go, there are two options. (1) Use stub/mock like go-sqlmock or REL. (2) Use a real DB like in-memory SQLite.
 
 ### [database/sql](https://golang.org/pkg/database/sql/)
 
@@ -20,4 +22,4 @@
 
 ### [GORM](https://gorm.io/)
 
-### [REL](https://fs02.github.io/rel/#/)
+### [REL](https://go-rel.github.io/)

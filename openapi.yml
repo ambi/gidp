@@ -1,0 +1,191 @@
+openapi: "3.0.3"
+info:
+  title: gIdP
+  version: "0.1.0"
+servers:
+  - url: http://localhost:8080
+    description: local
+paths:
+  /tenants:
+    get:
+      tags: [tenant]
+      summary: List tenants
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tenant'
+    post:
+      tags: [tenant]
+      summary: Create a tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tenant' # ??
+        required: true
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        400:
+          description: Bad request
+  /tenants/{tenant_id}:
+    get:
+      tags: [tenant]
+      summary: Find a tenant by ID
+      parameters:
+        - $ref: '#/components/parameters/TenantID'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        404:
+          description: Not found
+    delete:
+      tags: [tenant]
+      summary: Delete a tenant
+      parameters:
+        - $ref: '#/components/parameters/TenantID'
+      responses:
+        204:
+          description: Success
+        404:
+          description: Not found
+  /{tenant_id}/users:
+    get:
+      tags: [user]
+      summary: List users
+      parameters:
+        - $ref: '#/components/parameters/TenantID'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        404:
+          description: Not found
+    post:
+      tags: [user]
+      summary: Create a user
+      parameters:
+        - $ref: '#/components/parameters/TenantID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User' # ??
+        required: true
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Bad request
+        404:
+          description: Not found
+  /{tenant_id}/users/{id}:
+    get:
+      tags: [user]
+      summary: Find a user by ID
+      parameters:
+        - $ref: '#/components/parameters/TenantID'
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: Not found
+    put:
+      tags: [user]
+      summary: Update a user
+      parameters:
+        - $ref: '#/components/parameters/TenantID'
+        - $ref: '#/components/parameters/UserID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User' # ??
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: Not found
+    delete:
+      tags: [user]
+      summary: Delete a user
+      parameters:
+        - $ref: '#/components/parameters/TenantID'
+        - $ref: '#/components/parameters/UserID'
+      responses:
+        204:
+          description: Success
+        404:
+          description: Not found
+components:
+  schemas:
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+  parameters:
+    TenantID:
+      name: tenant_id
+      in: path
+      description: ID of a tenant
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserID:
+      name: user_id
+      in: path
+      description: ID of a user
+      required: true
+      schema:
+        type: string
+        format: uuid
+# security
+tags:
+  - name: tenant
+  - name: user
+# externalDocs

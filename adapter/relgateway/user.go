@@ -3,8 +3,8 @@ package relgateway
 import (
 	"context"
 
-	"github.com/Fs02/rel"
-	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/ambi/gidp/model"
+	"github.com/go-rel/rel"
 )
 
 type userGateway struct {
@@ -28,8 +28,8 @@ func (gw *userGateway) List(tenantID string) ([]*model.User, error) {
 
 	// []model.User -> []*model.User
 	result := make([]*model.User, len(users))
-	for i, user := range users {
-		result[i] = &user
+	for i := range users {
+		result[i] = &users[i]
 	}
 	return result, nil
 }
@@ -51,7 +51,7 @@ func (gw *userGateway) Create(user *model.User) error {
 
 	ctx := context.Background()
 
-	err := gw.repo.Insert(ctx, &user)
+	err := gw.repo.Insert(ctx, user)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (gw *userGateway) Create(user *model.User) error {
 func (gw *userGateway) Update(user *model.User) error {
 	ctx := context.Background()
 
-	err := gw.repo.Update(ctx, &user)
+	err := gw.repo.Update(ctx, user)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (gw *userGateway) Update(user *model.User) error {
 func (gw *userGateway) Delete(user *model.User) error {
 	ctx := context.Background()
 
-	err := gw.repo.Delete(ctx, &user)
+	err := gw.repo.Delete(ctx, user)
 	if err != nil {
 		return err
 	}

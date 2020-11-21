@@ -1,6 +1,6 @@
 package service
 
-import "github.com/ambi/go-web-app-patterns/model"
+import "github.com/ambi/gidp/model"
 
 // ListTenants lists tenants.
 func ListTenants(tenantRepo model.TenantRepo) ([]*model.Tenant, error) {

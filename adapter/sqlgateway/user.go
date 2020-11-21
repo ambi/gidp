@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/ambi/go-web-app-patterns/model"
+	"github.com/ambi/gidp/model"
 )
 
 type userGateway struct {
@@ -22,6 +22,9 @@ func (gw *userGateway) List(tenantID string) ([]*model.User, error) {
 	ctx := context.Background()
 	rows, err := gw.db.QueryContext(ctx, query, tenantID)
 	if err != nil {
+		return nil, err
+	}
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 	defer rows.Close()

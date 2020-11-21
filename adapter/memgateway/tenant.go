@@ -1,6 +1,6 @@
 package memgateway
 
-import "github.com/ambi/go-web-app-patterns/model"
+import "github.com/ambi/gidp/model"
 
 type tenantGateway struct {
 	tenants []*model.Tenant
